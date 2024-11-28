@@ -1,118 +1,77 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {useMachine} from '@xstate/react';
+import {trafficLightMachine} from './trafficLightMachine';
+import {TrafficLight} from './trafficLight';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const App = () => {
+  const [state, send] = useMachine(trafficLightMachine);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.parentContainer}>
+      {/* Traffic Light component */}
+      <TrafficLight currentLight={state.value as string} />
+      {/* Information panel */}
+      <View style={styles.informationContainer}>
+        <Text style={styles.informationLabel}>
+          Current State: {String(state.value)}
+        </Text>
+        <Text style={styles.informationLabel}>
+          Repair Mode: {state.matches('repair') ? 'ON' : 'OFF'}
+        </Text>
+        <Text style={styles.informationLabel}>
+          Times Broken: {state.context.timesBroken}
+        </Text>
+      </View>
+      {/* switch panel */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          onPress={() => send({type: 'SWITCH'})}
+          style={styles.button}>
+          <Text>Switch Light</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => send({type: 'REPAIR'})}
+          style={styles.button}>
+          <Text>Repair Mode</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => send({type: 'RESTART'})}
+          style={styles.button}>
+          <Text>Restart Light</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
+
+const styles = StyleSheet.create({
+  parentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  informationContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  informationLabel: {
+    fontSize: 20,
+    color: '#ccd2d9',
+    paddingTop: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    padding: 50,
+  },
+  button: {
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 10,
+    backgroundColor: '#516b87',
+    padding: 15,
+  },
+});
